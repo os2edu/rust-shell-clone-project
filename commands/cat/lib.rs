@@ -1,4 +1,4 @@
-use core::Command;
+use core::{App, Command};
 
 struct Cat {}
 
@@ -25,12 +25,12 @@ impl Command for Cat {
   }
 
   fn help(&self) {
-    println!("help fn");
+    println!("cat README.md");
   }
 }
 
-pub fn new() -> impl Command {
-  Cat::new()
+pub fn init(app: &mut App) {
+  app.register(String::from("cat"), Box::new(Cat::new()));
 }
 
 #[cfg(test)]
