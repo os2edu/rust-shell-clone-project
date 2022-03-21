@@ -65,7 +65,13 @@ impl Command for Example {
 pub fn init(app: &mut App) {}
 ```
 
-运行模块的测试用例
+模块需要到 frame 模块手动 init 一下
+
+```rust
+example::init(&mut app);
+```
+
+### 运行模块的测试用例
 
 ```bash
 cargo test --package <you_command_name>
