@@ -25,6 +25,10 @@ fn main() {
   loop {
     let mut s = String::new();
     io::stdin().read_line(&mut s).unwrap();
+    s = s.trim_end().to_string();
+    if s.is_empty() {
+      panic!("空字符串");
+    }
     let (cmd, args) = {
       match s.split_once(' ') {
         Some(res) => (res.0, Some(res.1)),
