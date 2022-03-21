@@ -1,5 +1,31 @@
-pub fn cat() {
-  println!("cat lib")
+use core::Command;
+
+struct Cat {}
+
+impl Cat {
+  fn new() -> Self {
+    Cat {}
+  }
+}
+
+impl Command for Cat {
+  fn default(&self) {
+    println!("default fn");
+  }
+
+  fn execute(&self) {
+    println!("execute fn");
+  }
+
+  fn help(&self) {
+    println!("help fn");
+  }
+}
+
+pub fn new() -> impl Command {
+  println!("cat lib");
+  let c = Cat::new();
+  c
 }
 
 #[cfg(test)]

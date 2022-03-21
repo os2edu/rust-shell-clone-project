@@ -5,10 +5,18 @@ version = 3
 [[package]]
 name = "cat"
 version = "0.1.0"
+dependencies = [
+ "core",
+]
+
+[[package]]
+name = "core"
+version = "0.1.0"
 
 [[package]]
 name = "frame"
 version = "0.1.0"
 dependencies = [
  "cat",
+ "core",
 ]

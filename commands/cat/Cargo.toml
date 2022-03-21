@@ -6,6 +6,7 @@ readme = "README.md"
 description = "cat lib"
 
 [lib]
-path = "./lib.rs"
+path = "lib.rs"
 
 [dependencies]
+core = { path = "../../core" }
