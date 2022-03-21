@@ -13,7 +13,7 @@ impl Command for Cat {
     println!("default fn");
   }
 
-  fn execute(&self) {
+  fn execute(&self, args:Option<&str>) {
     println!("execute fn");
   }
 

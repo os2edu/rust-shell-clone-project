@@ -1,6 +1,6 @@
 use cat;
 use core::Command;
-use std::collections::HashMap;
+use std::{collections::HashMap, io};
 
 struct App {
   // 命令列表
@@ -23,9 +23,25 @@ fn main() {
 
   app.commands.insert(String::from("cat"), Box::new(command));
 
-  let command = app.commands.get("cat").unwrap();
+  loop {
+    let mut s = String::new();
+    io::stdin().read_line(&mut s).unwrap();
+    s = s.trim_end().to_string();
+    if s.is_empty() {
+      panic!("空字符串");
+    }
+    let (cmd, args) = {
+      match s.split_once(' ') {
+        Some(res) => (res.0, Some(res.1)),
+        None => (&*s, None),
+      }
+    };
 
-  command.default();
-  command.execute();
-  command.help();
+    let command = app.commands.get(cmd).unwrap();
+    command.default();
+    command.execute(args);
+    // command.help();
+  }
+
+
 }
