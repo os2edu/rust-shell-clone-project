@@ -1,0 +1,12 @@
+[package]
+name = "cat"
+version = "0.1.0"
+edition = "2021"
+readme = "README.md"
+description = "cat lib"
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+core = { path = "../../core" }
