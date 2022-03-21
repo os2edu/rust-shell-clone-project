@@ -29,3 +29,14 @@ Shell clone project re-writing in Rust
 * grep
 
 可参考 [command-line-rust](https://gitee.com/chyyuu/command-line-rust) 的实现
+
+### 命令开发规范
+
+在 commands 文件夹下新建命令的 crate lib 包
+
+在 Cargo.toml 指令 lib 文件入口配置如下
+
+```toml
+[lib]
+path = "./lib.rs"
+```
