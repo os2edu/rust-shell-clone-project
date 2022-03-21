@@ -64,3 +64,9 @@ impl Command for Example {
 ```rust
 pub fn init(app: &mut App) {}
 ```
+
+运行模块的测试用例
+
+```bash
+cargo test --package <you_command_name>
+```
