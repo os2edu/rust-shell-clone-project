@@ -40,11 +40,3 @@ Shell clone project re-writing in Rust
 [lib]
 path = "./lib.rs"
 ```
-
-在根目录中 Cargo.toml 添加 members 的配置，配置如下
-
-```toml
-members = [
-    "commands/example"
-]
-```
