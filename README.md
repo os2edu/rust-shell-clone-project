@@ -34,17 +34,45 @@ Shell clone project re-writing in Rust
 
 在 commands 文件夹下新建命令的 crate lib 包，如 example
 
-在 commands/example 文件夹下的 Cargo.toml 指定 lib 文件入口配置，配置如下
+在 commands/example 文件夹下的 Cargo.toml 指定 lib 文件入口配置和 core 模块的开发依赖，配置如下
 
 ```toml
 [lib]
 path = "./lib.rs"
+
+[dependencies]
+core = { path = "../../core" }
 ```
 
-在根目录中 Cargo.toml 添加 members 的配置，配置如下
+模块需要实现 Command trait 代码如下
 
-```toml
-members = [
-    "commands/example"
-]
+```rust
+use core::{App, Command};
+
+impl Command for Example {
+  fn execute(&self, args: Option<&str>) {
+    todo!()
+  }
+  fn help(&self) {
+    todo!()
+  }
+}
+```
+
+模块需要暴露一个 init 方法, 代码如下
+
+```rust
+pub fn init(app: &mut App) {}
+```
+
+模块需要到 frame 模块手动 init 一下
+
+```rust
+example::init(&mut app);
+```
+
+### 运行模块的测试用例
+
+```bash
+cargo test --package <you_command_name>
 ```

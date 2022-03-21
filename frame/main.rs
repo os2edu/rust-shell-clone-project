@@ -1,35 +1,25 @@
-use cat;
-use core::Command;
-use std::{collections::HashMap, io};
-
-struct App {
-  // 命令列表
-  commands: HashMap<String, Box<dyn Command>>,
-}
-
-impl App {
-  fn new() -> Self {
-    App {
-      commands: HashMap::new(),
-    }
-  }
-}
+use core::App;
+use std::io;
 
 fn main() {
-  println!("rust-shell-clone-project");
-  let mut app = App::new();
+  // 新建 app
+  let mut app = App::default();
 
-  let command = cat::new();
-
-  app.commands.insert(String::from("cat"), Box::new(command));
+  /* 注册模块 start */
+  cat::init(&mut app);
+  /* 注册模块 end */
 
   loop {
     let mut s = String::new();
+
+    // 等待用户输入
     io::stdin().read_line(&mut s).unwrap();
     s = s.trim_end().to_string();
+
     if s.is_empty() {
       panic!("空字符串");
     }
+
     let (cmd, args) = {
       match s.split_once(' ') {
         Some(res) => (res.0, Some(res.1)),
@@ -37,11 +27,10 @@ fn main() {
       }
     };
 
-    let command = app.commands.get(cmd).unwrap();
-    command.default();
+    // 获取命令
+    let command = app.get_command(cmd);
+
+    // 执行命令
     command.execute(args);
-    // command.help();
   }
-
-
 }
