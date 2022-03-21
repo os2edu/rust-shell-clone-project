@@ -1,10 +1,9 @@
-use cat;
 use core::App;
 use std::io;
 
 fn main() {
   // 新建 app
-  let mut app = App::new();
+  let mut app = App::default();
 
   /* 注册模块 start */
   cat::init(&mut app);

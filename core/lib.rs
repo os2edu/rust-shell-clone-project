@@ -7,24 +7,21 @@ pub trait Command {
   fn help(&self);
 }
 
+#[derive(Default)]
 pub struct App {
   // 命令列表
   commands: HashMap<String, Box<dyn Command>>,
 }
 
 impl App {
-  // 新建
-  pub fn new() -> Self {
-    App {
-      commands: HashMap::new(),
-    }
-  }
   // 注册命令
   pub fn register(&mut self, name: String, command: Box<dyn Command>) {
-    self.commands.insert(name.into(), command);
+    let c = self.commands.get(&name);
+    if c.is_some() { panic!("{} 命令已注册", name) }
+    self.commands.insert(name, command);
   }
   // 获取命令
   pub fn get_command(&mut self, name: &str) -> &Box<dyn Command> {
-    &self.commands.get(name).unwrap()
+    self.commands.get(name).unwrap()
   }
 }
