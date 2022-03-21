@@ -9,12 +9,19 @@ impl Cat {
 }
 
 impl Command for Cat {
-  fn default(&self) {
-    println!("default fn");
-  }
-
-  fn execute(&self, args:Option<&str>) {
-    println!("execute fn");
+  fn execute(&self, args: Option<&str>) {
+    match args {
+      Some(path) => {
+        let r = std::fs::read_to_string(path);
+        match r {
+          Ok(text) => println!("{}", text),
+          Err(e) => println!("{}", e),
+        }
+      }
+      None => {
+        println!("请输入文件路径");
+      }
+    };
   }
 
   fn help(&self) {
@@ -23,9 +30,7 @@ impl Command for Cat {
 }
 
 pub fn new() -> impl Command {
-  println!("cat lib");
-  let c = Cat::new();
-  c
+  Cat::new()
 }
 
 #[cfg(test)]

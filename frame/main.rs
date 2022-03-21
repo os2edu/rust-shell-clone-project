@@ -16,7 +16,6 @@ impl App {
 }
 
 fn main() {
-  println!("rust-shell-clone-project");
   let mut app = App::new();
 
   let command = cat::new();
@@ -34,10 +33,7 @@ fn main() {
     };
 
     let command = app.commands.get(cmd).unwrap();
-    command.default();
+
     command.execute(args);
-    // command.help();
   }
-
-
 }
