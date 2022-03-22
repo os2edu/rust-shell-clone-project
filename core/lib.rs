@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 pub trait Command {
   // 执行入口
-  fn execute(&self, args: Option<&str>);
+  fn execute(&self, args: Vec<String>);
   // 帮助说明
   fn help(&self);
 }
