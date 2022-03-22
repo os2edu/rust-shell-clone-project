@@ -21,7 +21,7 @@ impl App {
     self.commands.insert(name, command);
   }
   // 获取命令
-  pub fn get_command(&mut self, name: &str) -> &Box<dyn Command> {
-    self.commands.get(name).unwrap()
+  pub fn get_command(&mut self, name: &str) -> &(dyn Command) {
+    self.commands.get(name).unwrap().as_ref()
   }
 }

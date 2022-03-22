@@ -7,11 +7,7 @@ impl Cat {
     Cat {}
   }
   fn read(&self, path: &str) -> Result<String, std::io::Error> {
-    let r = std::fs::read_to_string(path);
-    match r {
-      Ok(text) => Ok(text),
-      Err(e) => Err(e),
-    }
+    std::fs::read_to_string(path)
   }
 }
 
