@@ -1,6 +1,8 @@
 use core::App;
 use std::io;
 
+mod input;
+
 fn main() {
   // 新建 app
   let mut app = App::default();
@@ -10,25 +12,12 @@ fn main() {
   /* 注册模块 end */
 
   loop {
-    let mut s = String::new();
-
     // 等待用户输入
-    io::stdin().read_line(&mut s).unwrap();
-    s = s.trim_end().to_string();
-
-    if s.is_empty() {
-      panic!("空字符串");
-    }
-
-    let (cmd, args) = {
-      match s.split_once(' ') {
-        Some(res) => (res.0, Some(res.1)),
-        None => (&*s, None),
-      }
-    };
+    let args = input::get_input();
+    println!("args:\n{args:?}");
 
     // 获取命令
-    let command = app.get_command(cmd);
+    let command = app.get_command(&args[0]);
 
     // 执行命令
     command.execute(args);

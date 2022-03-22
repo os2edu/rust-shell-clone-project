@@ -12,19 +12,17 @@ impl Cat {
 }
 
 impl Command for Cat {
-  fn execute(&self, args: Option<&str>) {
-    match args {
-      Some(path) => {
-        let r = self.cat(path);
-        match r {
-          Ok(text) => println!("{}", text),
-          Err(e) => println!("{}", e),
-        }
-      }
-      None => {
-        println!("请输入文件路径");
-      }
-    };
+  fn execute(&self, args: Vec<String>) {
+      if args.len() != 2 {
+      println!("需要输入路径, 且只能输入一个路径, 如果你雀食只输入了一个路径, 那应该是框架的转换参数的地方有问题");
+      return;
+    }
+    let path = &args[1];
+    let r = self.cat(path);
+    match r {
+      Ok(text) => println!("{}", text),
+      Err(e) => println!("{}", e),
+    }
   }
 
   fn help(&self) {
