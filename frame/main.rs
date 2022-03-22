@@ -15,6 +15,9 @@ fn main() {
     // 等待用户输入
     let args = input::get_input();
     println!("args:\n{args:?}");
+    if args.len() < 1 {
+      continue;
+    }
 
     // 获取命令
     let command = app.get_command(&args[0]);
