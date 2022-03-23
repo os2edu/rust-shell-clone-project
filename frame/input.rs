@@ -1,4 +1,4 @@
-use std::{io};
+use std::{collections::HashSet, io};
 
 pub fn get_input<'a>() -> Vec<String> {
   let mut decoder = Decoder::default();
@@ -11,97 +11,162 @@ pub fn get_input<'a>() -> Vec<String> {
   decoder.result()
 }
 
-#[derive(PartialEq, Eq)]
-enum PointerState {
-  NeedNewLine,
-  Normal(String),
-  Split,
-  Str(String),
-  EscapeSequence(String),
-  EscapeSequenceInStr(String),
+#[derive(PartialEq, Eq, Hash)]
+enum EPointerState {
+  White(White),
+  Normal(Normal),
+  Str(Str),
+  EscapeSequence(EscapeSequence),
 }
-
-impl PointerState {
-  fn next_char(self, c: char) -> (Self, Option<String>) {
-    use PointerState::*;
-    macro_rules! escape_sequence {
-      ($it:ident,$ret:ident, $s:ident, newline) => {
-        escape_sequence!(@implement $it, $ret,$s, {(NeedNewLine, None)})
-      };
-      ($it:ident,$ret:ident, $s:ident, go_on) => {
-        escape_sequence!(@implement $it, $ret,$s, {($ret(String::new()), Some(String::new()))})
-      };
-      (@implement $it:ident,$ret:ident, $s:ident, $newline_ret:tt) => {{
-        if $s.is_empty() {
-          if c == '\n' {
-            $newline_ret
-          } else if c == '\r' {
-            ($it('\r'.to_string()), None)
-          } else if c == '\"' {
-            ($ret(String::new()), Some('\"'.to_string()))
-          } else if c == '\\' {
-            ($ret(String::new()), Some('\\'.to_string()))
-          } else {
-            $ret(String::new()).next_char(c)
-          }
-        } else if $s == "\r" {
-          if c == '\n' {
-            $newline_ret
-          } else {
-            $ret(String::new()).next_char(c)
-          }
-        } else {
-          unreachable!("不应该有这种情况啊???");
-        }
-      }};
-    }
-
+impl IPointerState for EPointerState {
+  fn next_char(
+    &mut self,
+    stack: &[EPointerState],
+    c: char,
+  ) -> HashSet<DecoderAction> {
+    use EPointerState::*;
     match self {
-      Normal(mut s) => {
-        if c.is_whitespace() {
-          (Split, Some(s))
-        } else if c == '\"' {
-          (Str(String::new()), Some(s))
-        } else if c == '\\' {
-          (EscapeSequence(String::new()), Some(s))
-        } else {
-          s.push(c);
-          (Normal(s), None)
-        }
-      }
-      Split => {
-        if c.is_whitespace() {
-          (Split, None)
-        } else {
-          Normal(String::new()).next_char(c)
-        }
-      }
-      Str(mut s) => {
-        if c == '\"' {
-          (Normal(String::new()), Some(s))
-        } else if c == '\\' {
-          (EscapeSequenceInStr(String::new()), Some(s))
-        } else {
-          s.push(c);
-          (Str(s), None)
-        }
-      }
-      EscapeSequence(mut s) => {
-        escape_sequence!(EscapeSequence, Normal, s, newline)
-      }
-      EscapeSequenceInStr(mut s) => {
-        escape_sequence!(EscapeSequenceInStr, Str, s, go_on)
-      }
-      NeedNewLine => Normal(String::new()).next_char(c),
+      White(state) => state.next_char(stack, c),
+      Normal(state) => state.next_char(stack, c),
+      Str(state) => state.next_char(stack, c),
+      EscapeSequence(state) => state.next_char(stack, c),
     }
   }
 }
 
-enum OldPointerState {
-  Str(String),
-  Split,
+#[derive(PartialEq, Eq, Hash)]
+enum DecoderAction {
+  PushChar,
+  Wait,
+  RequestNewLine,
+  PushNewState(EPointerState),
+  PopCurrentState,
+  RefreshBuf,
+}
+trait IPointerState {
+  // TODO 用 bit 来做, 而不是 HashSet
+  fn next_char(
+    &mut self,
+    stack: &[EPointerState],
+    c: char,
+  ) -> HashSet<DecoderAction>;
 }
 
+#[derive(Default, PartialEq, Eq, Hash)]
+struct White;
+#[derive(Default, PartialEq, Eq, Hash)]
+struct Normal;
+#[derive(Default, PartialEq, Eq, Hash)]
+struct Str;
+#[derive(PartialEq, Eq, Hash)]
+struct EscapeSequence(bool);
+impl Default for EscapeSequence {
+  fn default() -> Self {
+    Self(false)
+  }
+}
+impl IPointerState for White {
+  fn next_char(
+    &mut self,
+    stack: &[EPointerState],
+    c: char,
+  ) -> HashSet<DecoderAction> {
+    let mut acts = HashSet::new();
+    use DecoderAction::*;
+    use EPointerState as P;
+    if !c.is_whitespace() {
+      acts.insert(PushNewState(P::Normal(Default::default())));
+      acts.insert(Wait);
+    };
+    acts
+  }
+}
+impl IPointerState for Normal {
+  fn next_char(
+    &mut self,
+    stack: &[EPointerState],
+    c: char,
+  ) -> HashSet<DecoderAction> {
+    let mut acts = HashSet::new();
+    use DecoderAction::*;
+    use EPointerState as P;
+    if c.is_whitespace() {
+      acts.insert(PopCurrentState);
+      acts.insert(RefreshBuf);
+    } else if c == '\"' {
+      acts.insert(PushNewState(P::Str(Default::default())));
+    } else if c == '\\' {
+      acts.insert(PushNewState(P::EscapeSequence(Default::default())));
+    } else {
+      acts.insert(PushChar);
+    }
+    acts
+  }
+}
+
+impl IPointerState for Str {
+  fn next_char(
+    &mut self,
+    stack: &[EPointerState],
+    c: char,
+  ) -> HashSet<DecoderAction> {
+    let mut acts = HashSet::new();
+    use DecoderAction::*;
+    use EPointerState as P;
+    if c == '\"' {
+      acts.insert(PopCurrentState);
+    } else if c == '\\' {
+      acts.insert(PushNewState(P::EscapeSequence(Default::default())));
+    } else {
+      acts.insert(PushChar);
+    }
+    acts
+  }
+}
+
+impl IPointerState for EscapeSequence {
+  fn next_char(
+    &mut self,
+    stack: &[EPointerState],
+    c: char,
+  ) -> HashSet<DecoderAction> {
+    let mut acts = HashSet::new();
+    use DecoderAction::*;
+    use EPointerState as P;
+    macro_rules! new_line {
+      () => {
+        acts.insert(PopCurrentState);
+        // 这个判断不加也行
+        // 这个判断主要是排除掉, 在 "abc\ 这种情况
+        // 因为这种情况属于引号没匹配, 在外面处理了
+        if let &P::Normal(_) = stack.last().unwrap() {
+          acts.insert(RequestNewLine);
+        }
+      };
+    }
+    if !self.0 {
+      if c == '\n' {
+        new_line!();
+      } else if c == '\r' {
+        self.0 = true;
+      } else if c == '\"' || c == '\\' {
+        acts.insert(PushChar);
+        acts.insert(PopCurrentState);
+      } else {
+        acts.insert(PopCurrentState);
+        acts.insert(Wait);
+      }
+    } else {
+      if c == '\n' {
+        new_line!();
+      } else {
+        acts.insert(PopCurrentState);
+        acts.insert(Wait);
+      }
+    }
+    acts
+  }
+}
 #[derive(PartialEq, Eq)]
 enum LineState {
   CanFinish,
@@ -113,66 +178,59 @@ enum LineState {
 struct DecodeError {}
 struct Decoder {
   res: Vec<String>,
-  // 这里需要用 Option 是因为,
-  // 我需要在 decode 中(接收的是 &mut self), 取得 pointer state 里数据的所有权,
-  // 用了 std::mem::take.
-  // 但是 None 只是中间状态, decode 的实现, 保证其在 decode 的前后都不空.
-  // 所以有没有办法不用 Option ?
-  pointer_state: Option<PointerState>,
-  old_pointer_state: Option<OldPointerState>,
+  stack: Vec<EPointerState>,
+  buf: String,
 }
 impl Default for Decoder {
   fn default() -> Self {
     Self {
       res: Default::default(),
-      pointer_state: Some(PointerState::Split),
-      old_pointer_state: Some(OldPointerState::Split),
+      stack: vec![EPointerState::White(White)],
+      buf: String::new(),
     }
   }
 }
 impl Decoder {
-  fn decode<'a>(&mut self, str: &'a str) -> Result<LineState, DecodeError> {
+  fn decode(&mut self, str: &str) -> Result<LineState, DecodeError> {
     for c in str.chars() {
-      let state = std::mem::take(&mut self.pointer_state).unwrap();
-      let (new_state, out_str) = state.next_char(c);
-      {
-        use OldPointerState as O;
-        use PointerState as P;
-        let old_state = std::mem::take(&mut self.old_pointer_state).unwrap();
-        match old_state {
-          O::Split => {
-            if new_state != P::Split {
-              self.old_pointer_state = Some(O::Str(String::new()))
-            } else {
-              self.old_pointer_state = Some(O::Split)
-            }
-          }
-          O::Str(mut s) => {
-            s.push_str(&out_str.unwrap_or_default());
-            if new_state == P::Split {
+      let mut acts;
+      loop {
+        let (state, stack) = self.stack.split_last_mut().unwrap();
+        acts = state.next_char(stack, c);
+        let mut br = true;
+        let mut new_line = false;
+        for act in acts.drain() {
+          use DecoderAction::*;
+          match act {
+            RequestNewLine => new_line = true,
+            Wait => br = false,
+            PushChar => self.buf.push(c),
+            RefreshBuf => {
+              let mut s = String::new();
+              std::mem::swap(&mut s, &mut self.buf);
               self.res.push(s);
-              self.old_pointer_state = Some(O::Split)
-            } else {
-              self.old_pointer_state = Some(O::Str(s))
+            }
+            PushNewState(s) => self.stack.push(s),
+            PopCurrentState => {
+              self.stack.pop();
             }
           }
-        };
+        }
+        // 同时为 true 则 Wait 失效. 要修复, 可能需要存储 br 和 c?
+        if new_line {
+          return Ok(LineState::NeedNewLine);
+        }
+        if br {
+          break;
+        }
       }
-      self.pointer_state = Some(new_state);
-
-      match self.pointer_state {
-        Some(PointerState::NeedNewLine) => return Ok(LineState::NeedNewLine),
-        _ => {}
-      };
     }
-
-    if let Some(PointerState::Str(_)) = self.pointer_state {
-      return Ok(LineState::NeedNewLine);
+    return if let EPointerState::Str(_) = self.stack.last().unwrap() {
+      Ok(LineState::NeedNewLine)
     } else {
       Ok(LineState::CanFinish)
-    }
+    };
   }
-
   fn result(self) -> Vec<String> {
     self.res
   }
