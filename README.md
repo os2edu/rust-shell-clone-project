@@ -1,6 +1,18 @@
-# rust-shell-clone-project
-Shell clone project re-writing in Rust
+<!-- # rust-shell-clone-project -->
+<h1 align="center">Shell clone project re-writing in Rust</h1>
 
+***
+
+This repo contains the following main components:
+
+| Crate                                                                                                             | Description                    | Documentation                        | ChangeLog                                  |
+|-------------------------------------------------------------------------------------------------------------------|--------------------------------|--------------------------------------|--------------------------------------------|
+| **core**                                | Command RunTime                       | [(README)](core/README.md)           | [(CHANGELOG)](core/CHANGELOG.md)           |
+| **frame**           | Process Entry            | [(README)](frame/README.md)    | [(CHANGELOG)](frame/CHANGELOG.md)    |
+| **commands**        | Command Set           | [(README)](commands/README.md)   | [(CHANGELOG)](commands/CHANGELOG.md)   |
+
+
+***
 ## 项目需求整理
 实现一个类Shell的命令解释器，学习小组按组为单位，每个小组都要做至少一个命令，加入到框架里
 
@@ -19,16 +31,18 @@ Shell clone project re-writing in Rust
 至少要有一个单元测试
 
 #### 可供实现的命令
-* cat
-* head
-* tail
-* echo
-* wc
-* cal
-* find
-* grep
+- [x] cat
+- [ ] head
+- [ ] tail
+- [ ] echo
+- [ ] wc
+- [ ] cal
+- [ ] find
+- [ ] grep
 
 可参考 [command-line-rust](https://gitee.com/chyyuu/command-line-rust) 的实现
+
+
 
 ### 命令开发规范
 
@@ -76,3 +90,21 @@ example::init(&mut app);
 ```bash
 cargo test --package <you_command_name>
 ```
+
+
+## Contributing
+
+Thanks for your help improving the project! We are so happy to have you!
+
+
+## License
+
+Licensed under either of
+
+* Apache License, Version 2.0,([LICENSE-APACHE](./LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+* MIT license ([LICENSE-MIT](./LICENSE-MIT) or http://opensource.org/licenses/MIT)
+  at your option.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in Shell by Rust by you, shall be licensed as Apache, without any additional terms or conditions.
