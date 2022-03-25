@@ -18,12 +18,14 @@ dependencies = [
 [[package]]
 name = "core"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+]
 
 [[package]]
 name = "frame"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "cat",
  "core",
 ]

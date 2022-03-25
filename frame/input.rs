@@ -1,6 +1,7 @@
+use core::*;
 use std::{collections::HashSet, error::Error, fmt::Display, io};
 
-pub fn get_input() -> anyhow::Result<Vec<String>> {
+pub fn get_input() -> Result<Vec<String>> {
   let mut decoder = Decoder::default();
   loop {
     let mut s = String::new();
@@ -12,8 +13,6 @@ pub fn get_input() -> anyhow::Result<Vec<String>> {
   }
   Ok(decoder.result())
 }
-
-type DecodeResult<T> = Result<T, DecodeError>;
 
 #[derive(PartialEq, Eq, Hash)]
 enum EPointerState {
@@ -39,21 +38,21 @@ impl IPointerState for EPointerState {
     &mut self,
     stack: &[EPointerState],
     c: char,
-  ) -> DecodeResult<HashSet<DecoderAction>> {
+  ) -> Result<HashSet<DecoderAction>> {
     dispatch_pointer_state_enum!(next_char, self, stack, c)
   }
 
   fn enter(
     &mut self,
     stack: &[EPointerState],
-  ) -> DecodeResult<HashSet<DecoderAction>> {
+  ) -> Result<HashSet<DecoderAction>> {
     dispatch_pointer_state_enum!(enter, self, stack)
   }
 
   fn leave(
     &mut self,
     stack: &[EPointerState],
-  ) -> DecodeResult<HashSet<DecoderAction>> {
+  ) -> Result<HashSet<DecoderAction>> {
     dispatch_pointer_state_enum!(leave, self, stack)
   }
 }
@@ -73,17 +72,17 @@ trait IPointerState {
     &mut self,
     stack: &[EPointerState],
     c: char,
-  ) -> DecodeResult<HashSet<DecoderAction>>;
+  ) -> Result<HashSet<DecoderAction>>;
   fn enter(
     &mut self,
     stack: &[EPointerState],
-  ) -> DecodeResult<HashSet<DecoderAction>> {
+  ) -> Result<HashSet<DecoderAction>> {
     Ok(Default::default())
   }
   fn leave(
     &mut self,
     stack: &[EPointerState],
-  ) -> DecodeResult<HashSet<DecoderAction>> {
+  ) -> Result<HashSet<DecoderAction>> {
     Ok(Default::default())
   }
 }
@@ -106,7 +105,7 @@ impl IPointerState for White {
     &mut self,
     stack: &[EPointerState],
     c: char,
-  ) -> DecodeResult<HashSet<DecoderAction>> {
+  ) -> Result<HashSet<DecoderAction>> {
     let mut acts = HashSet::new();
     use DecoderAction::*;
     use EPointerState as P;
@@ -122,7 +121,7 @@ impl IPointerState for Normal {
     &mut self,
     stack: &[EPointerState],
     c: char,
-  ) -> DecodeResult<HashSet<DecoderAction>> {
+  ) -> Result<HashSet<DecoderAction>> {
     let mut acts = HashSet::new();
     use DecoderAction::*;
     use EPointerState as P;
@@ -140,7 +139,7 @@ impl IPointerState for Normal {
   fn leave(
     &mut self,
     stack: &[EPointerState],
-  ) -> DecodeResult<HashSet<DecoderAction>> {
+  ) -> Result<HashSet<DecoderAction>> {
     let mut acts = HashSet::new();
     use DecoderAction::*;
     acts.insert(RefreshBuf);
@@ -153,7 +152,7 @@ impl IPointerState for Str {
     &mut self,
     stack: &[EPointerState],
     c: char,
-  ) -> DecodeResult<HashSet<DecoderAction>> {
+  ) -> Result<HashSet<DecoderAction>> {
     let mut acts = HashSet::new();
     use DecoderAction::*;
     use EPointerState as P;
@@ -173,7 +172,7 @@ impl IPointerState for EscapeSequence {
     &mut self,
     stack: &[EPointerState],
     c: char,
-  ) -> DecodeResult<HashSet<DecoderAction>> {
+  ) -> Result<HashSet<DecoderAction>> {
     let mut acts = HashSet::new();
     use DecoderAction::*;
     use EPointerState as P;
@@ -244,10 +243,7 @@ impl Default for Decoder {
   }
 }
 impl Decoder {
-  fn push_new_state(
-    &mut self,
-    mut s: EPointerState,
-  ) -> DecodeResult<(bool, bool)> {
+  fn push_new_state(&mut self, mut s: EPointerState) -> Result<(bool, bool)> {
     let mut acts = s.enter(&self.stack)?;
     let mut wait = false;
     let mut new_line = false;
@@ -260,7 +256,7 @@ impl Decoder {
     Ok((wait, new_line))
   }
 
-  fn pop_cur_state(&mut self) -> DecodeResult<(bool, bool)> {
+  fn pop_cur_state(&mut self) -> Result<(bool, bool)> {
     let mut s = self.stack.pop().unwrap();
     let mut wait = false;
     let mut new_line = false;
@@ -273,7 +269,7 @@ impl Decoder {
     Ok((wait, new_line))
   }
 
-  fn do_actions(&mut self, act: DecoderAction) -> DecodeResult<(bool, bool)> {
+  fn do_actions(&mut self, act: DecoderAction) -> Result<(bool, bool)> {
     use DecoderAction::*;
     let mut wait = false;
     let mut new_line = false;
@@ -300,7 +296,7 @@ impl Decoder {
     Ok((wait, new_line))
   }
 
-  fn decode(&mut self, str: &str) -> DecodeResult<LineState> {
+  fn decode(&mut self, str: &str) -> Result<LineState> {
     for c in str.chars() {
       let mut acts;
       loop {

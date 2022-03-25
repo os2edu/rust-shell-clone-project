@@ -42,6 +42,9 @@ fn main() {
     let command = app.get_command(&args[0]);
 
     // 执行命令
-    command.execute(args);
+    match command.execute(args) {
+      Ok(_) => {}
+      Err(e) => println!("{e}"),
+    };
   }
 }

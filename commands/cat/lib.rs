@@ -1,4 +1,5 @@
-use core::{App, Command};
+use core::*;
+use std::{error::Error, fmt::Display};
 
 struct Cat {}
 
@@ -6,23 +7,29 @@ impl Cat {
   fn new() -> Self {
     Cat {}
   }
-  fn cat(&self, path: &str) -> Result<String, std::io::Error> {
-    std::fs::read_to_string(path)
+  fn cat(&self, path: &str) -> Result<String> {
+    Ok(std::fs::read_to_string(path)?)
   }
 }
 
+#[derive(Debug)]
+struct ArgError;
+impl Display for ArgError {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "需要输入路径, 且只能输入一个路径, 如果你雀食只输入了一个路径, 那应该是框架的转换参数的地方有问题")
+  }
+}
+impl Error for ArgError {}
+
 impl Command for Cat {
-  fn execute(&self, args: Vec<String>) {
+  fn execute(&self, args: Vec<String>) -> Result<()> {
     if args.len() != 2 {
-      println!("需要输入路径, 且只能输入一个路径, 如果你雀食只输入了一个路径, 那应该是框架的转换参数的地方有问题");
-      return;
+      return Err(ArgError.into());
     }
     let path = &args[1];
-    let r = self.cat(path);
-    match r {
-      Ok(text) => println!("{}", text),
-      Err(e) => println!("{}", e),
-    }
+    let r = self.cat(path)?;
+    println!("{}", r);
+    Ok(())
   }
 
   fn help(&self) {

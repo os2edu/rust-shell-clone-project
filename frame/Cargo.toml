@@ -12,5 +12,3 @@ path = "main.rs"
 [dependencies]
 core = { path = "../core" }
 cat = { path = "../commands/cat" }
-
-anyhow = "*"
